@@ -1,4 +1,5 @@
 // ZAK miner: node miner.mjs <yourAddress> [nodeUrl] [threads]
+// DISCLAIMER: ZAK has no cash value. Mining it earns no money and carries no promise of returns.
 // Uses the native SHA-NI miner in native/zakminer when it is built (see README), otherwise falls back to
 // pure JavaScript worker threads. Earns the fees in every block it wins.
 import os from 'os';
@@ -75,6 +76,7 @@ if (!isMainThread) {
     workers = Array.from({ length: threads }, () => new Worker(new URL(import.meta.url)));
     for (const w of workers) w.on('message', m => { if (m.hashes) total += m.hashes; if (m.found) onFound(m.found.id, m.found.nonce, m.found.hash); });
   }
+  console.log('NOTE: ZAK has no cash value. Mining earns no money and carries no promise of returns. This is an open-source hobby project.');
   console.log(`ZAK miner: ${threads} threads, ${native ? 'native SHA-NI engine' : 'JavaScript engine (build native/zakminer for ~50x more speed)'}`);
   process.on('exit', () => proc && proc.kill());
   process.on('SIGINT', () => process.exit(0)); process.on('SIGTERM', () => process.exit(0));

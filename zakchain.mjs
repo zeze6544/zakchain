@@ -75,7 +75,12 @@ export class Chain {
     g.hash = blockHash(g);
     this.blocks = [g]; this.pending = [];
   }
-  state() { return replay(this.blocks); }
+  // Replaying the whole chain is O(n), so cache the result per tip and only recompute when the tip changes.
+  state() {
+    const tip = this.blocks.at(-1).hash;
+    if (this._cache?.tip !== tip) this._cache = { tip, s: replay(this.blocks) };
+    return this._cache.s;
+  }
   submit(t) {
     if (!Number.isInteger(t.amount) || t.amount <= 0 || !Number.isInteger(t.fee) || t.fee < 0) throw new Error('bad amount or fee');
     if (!verifyTx(t)) throw new Error('bad signature');
@@ -93,7 +98,7 @@ export class Chain {
     while (zeroBits(b.hash = powHash(hh, b.nonce)) < b.bits) b.nonce++;
     this.blocks.push(b); this.pending = []; return b;
   }
-  valid() { try { const { bal } = replay(this.blocks); return Object.values(bal).reduce((a, v) => a + v, 0) === SUPPLY; } catch { return false; } }
+  valid() { try { const { bal } = this.state(); return Object.values(bal).reduce((a, v) => a + v, 0) === SUPPLY; } catch { return false; } }
   // Fork choice: adopt a candidate only if it shares genesis, is fully valid, and has more total work.
   consider(blocks) {
     if (blocks[0]?.hash !== this.blocks[0].hash) return false;

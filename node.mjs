@@ -1,4 +1,4 @@
-// ZAK Chain node: HTTP API + peer gossip + longest-valid-chain consensus.
+// ZAK Chain node: HTTP API + peer gossip + most-work valid-chain consensus.
 import http from 'http';
 import fs from 'fs';
 import { Chain } from './zakchain.mjs';
@@ -18,8 +18,14 @@ const post = (url, body) => fetch(url, { method: 'POST', headers: { 'content-typ
 const broadcast = (path, body) => PEERS.forEach(p => post(p + path, body));
 
 const tryAdopt = blocks => chain.consider(blocks);
+// Cheap sync: ask each peer for its total work first and only download its chain when it has more.
 async function sync() {
-  for (const p of PEERS) { try { tryAdopt(await (await fetch(p + '/chain')).json()); } catch {} }
+  for (const p of PEERS) {
+    try {
+      const info = await (await fetch(p + '/info', { signal: AbortSignal.timeout(3000) })).json();
+      if (info.work > chain.state().work) tryAdopt(await (await fetch(p + '/chain', { signal: AbortSignal.timeout(10000) })).json());
+    } catch {}
+  }
 }
 
 const routes = {
@@ -37,7 +43,9 @@ const routes = {
 
 http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x');
-  let raw = ''; for await (const c of req) raw += c;
+  res.setHeader('access-control-allow-origin', '*');   // lets the explorer and wallets in a browser read the node
+  if (req.method === 'OPTIONS') { res.setHeader('access-control-allow-headers', 'content-type'); return res.end(); }
+  let raw = ''; for await (const c of req) { raw += c; if (raw.length > 50e6) { res.statusCode = 413; return res.end('{"error":"too large"}'); } }
   const fn = routes[`${req.method} ${u.pathname}`];
   res.setHeader('content-type', 'application/json');
   if (!fn) { res.statusCode = 404; return res.end('{"error":"not found"}'); }

@@ -20,6 +20,8 @@ PORT=7001 PEERS=http://<peer-host>:7001 node node.mjs
 
 ## Mine
 
+> **ZAK has no cash value.** Mining it earns no money, and nobody promises any returns. It is an open-source hobby project.
+
 ```bash
 # optional native engine (~50x faster, uses Intel/AMD SHA extensions when present)
 gcc -O3 -march=native -pthread -o native/zakminer native/zakminer.c -lcrypto
