@@ -1,0 +1,43 @@
+{
+  "id": "play.html",
+  "name": "ZAK Miner",
+  "short_name": "ZAK Miner",
+  "description": "An idle game that runs real SHA-256 proof of work in your browser. Mining is off until you press Start. Game ZAK is not real ZAK and has no value.",
+  "start_url": "play.html",
+  "scope": "play.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0f1a",
+  "theme_color": "#0b0f1a",
+  "lang": "en",
+  "categories": [
+    "games",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "icons/zakminer-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/zakminer-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/zakminer-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

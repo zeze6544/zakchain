@@ -6,7 +6,7 @@
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ZAK Miner: real proof of work in your browser"><meta name="twitter:description" content="An idle mining game that runs real SHA-256 proof of work in your browser. Game ZAK is not real ZAK and has no value; the hashing is real."><meta name="twitter:image" content="https://zaks.life/og.png">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="application/rss+xml" title="ZAK Chain blog" href="feed.xml">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="play.css"></head><body>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="play.css"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"></head><body>
 <a class="skip" href="#main">Skip to content</a><div class="wrap">
 <nav class="site-nav" aria-label="Site"><a class="brand" href="index.html"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#151b2b"/><path d="M19 19h26L19 45h26" fill="none" stroke="#f5b301" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>ZAK Chain</a><a href="how-it-works.html">How it works</a><a href="play.html" aria-current=page>Play</a><a href="blog/index.html">Blog</a><a href="archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav>
 <main id="main"><h1>⛏️ ZAK Miner</h1>
@@ -42,4 +42,4 @@
 <div id="toasts" class="toasts" aria-live="polite"></div>
 <p class="note">Game ZAK lives in your browser only. It isn't real ZAK, can't be withdrawn or sent, and has no value. The hashing is real: about one in 256 SHA-256 hashes starts with two hex zeros, and each extra zero is 16 times rarer.</p>
 <noscript><p class="note">ZAK Miner needs JavaScript to hash.</p></noscript>
-</main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div><script src="js/game.js"></script></body></html>
+</main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div><script src="js/game.js"></script><script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js', { scope: './play.html' }).catch(() => {}));</script></body></html>
