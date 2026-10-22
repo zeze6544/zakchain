@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>ZAK Miner: the game</title><link rel=stylesheet href=style.css>
+<style>#rig{font-size:90px;cursor:pointer;user-select:none;text-align:center;transition:transform .05s}#rig:active{transform:scale(.9)}
+.big{font-size:34px;font-weight:800}.row{display:flex;gap:12px;flex-wrap:wrap}.row .card{flex:1;min-width:140px}
+button{padding:10px 16px;border:0;border-radius:8px;background:#f5b301;font-weight:700;cursor:pointer;margin:6px 6px 0 0}button:disabled{opacity:.4}
+#log{font-family:monospace;font-size:12px;max-height:180px;overflow:auto}</style></head><body><div class=wrap>
+<nav><a href="index.html">ZAK Chain</a><a href="play.html">Play</a><a href="blog/index.html">Blog</a></nav>
+<h1>⛏️ ZAK Miner</h1><p class=tag>Real SHA-256 proof of work, in your browser. Tap the rig to hash. Find a hash starting with zeros to earn game ZAK.</p>
+<div class=row><div class=card>Game ZAK<div class=big id=zak>0</div></div><div class=card>Hashes<div class=big id=hc>0</div></div>
+<div class=card>Best hash<div class=big id=best>–</div></div><div class=card>Hash rate<div class=big id=hr>0/s</div></div></div>
+<div id=rig onclick="tap()">🖥️</div>
+<div><button id=b1 onclick="buy('gpu')">Buy GPU (+200 h/s) · <span id=c1></span> ZAK</button><button id=b2 onclick="buy('farm')">Buy farm (+2,000 h/s) · <span id=c2></span> ZAK</button><button onclick="share()">Share score</button></div>
+<h3>Finds</h3><div id=log class=card></div>
+<p class=note>Game ZAK lives in your browser only. It isn't real ZAK and has no value. The hashing is real.</p></div>
+<script>
+const S=JSON.parse(localStorage.zakgame||'{"zak":0,"hashes":0,"gpu":0,"farm":0,"best":64}');
+const cost=k=>Math.floor((k=='gpu'?20:300)*1.5**S[k]);let n=Math.random()*1e9|0,done=0,t0=Date.now();
+const lz=h=>{let z=0;for(const c of h){if(c!='0')break;z++}return z};
+async function hash(k){for(let i=0;i<k;i++){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('ZAK'+n++));
+const h=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');S.hashes++;done++;const z=lz(h);
+if(z>=2){const r=16**(z-2);S.zak+=r;log.insertAdjacentHTML('afterbegin',`<div>+${r} ZAK · ${h.slice(0,20)}…</div>`)}
+if(z>0&&(S.best==64||z>=S.best))S.best=z}}
+function tap(){hash(25)}
+function buy(k){if(S.zak>=cost(k)){S.zak-=cost(k);S[k]++}}
+function share(){const t=`I've hashed ${S.hashes.toLocaleString()} times and mined ${S.zak} game ZAK in ZAK Miner ⛏️ Real proof of work in your browser:`;
+navigator.share?navigator.share({text:t,url:location.href}):navigator.clipboard.writeText(t+' '+location.href).then(()=>alert('Copied!'))}
+setInterval(()=>hash(Math.ceil((50+S.gpu*200+S.farm*2000)/10)),100);
+setInterval(()=>{zak.textContent=S.zak.toLocaleString();hc.textContent=S.hashes.toLocaleString();best.textContent=S.best==64?'–':S.best+' zeros';
+c1.textContent=cost('gpu');c2.textContent=cost('farm');b1.disabled=S.zak<cost('gpu');b2.disabled=S.zak<cost('farm');
+hr.textContent=Math.round(done/((Date.now()-t0)/1000))+'/s';if(Date.now()-t0>5000){t0=Date.now();done=0}localStorage.zakgame=JSON.stringify(S)},250);
+</script></body></html>
