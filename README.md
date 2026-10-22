@@ -22,13 +22,20 @@ PORT=7001 PEERS=http://<peer-host>:7001 node node.mjs
 
 > **ZAK has no cash value.** Mining it earns no money, and nobody promises any returns. It is an open-source hobby project.
 
+The miner is **off by default**. It shows what it will do and only starts after you type `yes` (or pass
+`--i-understand`). It uses **1 thread** unless you ask for more, talks only to the node you name, prints its
+status locally, installs nothing, and stops cleanly with Ctrl+C. Uninstall = delete the folder.
+Full details: [MINER-SAFETY.md](MINER-SAFETY.md).
+
 ```bash
-# optional native engine (~50x faster, uses Intel/AMD SHA extensions when present)
-gcc -O3 -march=native -pthread -o native/zakminer native/zakminer.c -lcrypto
-node miner.mjs <yourAddress> http://localhost:7001        # all CPU cores, live MH/s
+sh native/build.sh      # optional native engine (~50x faster, uses Intel/AMD SHA extensions); prints SHA-256
+node miner.mjs <yourAddress> http://localhost:7001                                  # asks for "yes", 1 thread
+node miner.mjs <yourAddress> http://localhost:7001 --threads 2 --max-cpu 50 --max-minutes 30 --i-understand
+node miner.mjs --help   # all limits: --threads, --max-cpu, --max-minutes, --allow-battery, --max-temp, --engine
 ```
 
-Without the native build the miner falls back to JavaScript worker threads. Nodes save their chain to `data/` and resume after a restart.
+Pause/resume with `kill -USR1 <pid>` (the pid is printed at start). Without the native build the miner falls back
+to JavaScript worker threads. Nodes save their chain to `data/` and resume after a restart.
 
 ## Wallet
 
@@ -53,7 +60,8 @@ curl -X POST 'http://localhost:7001/mine?miner=<address>'   # mine pending trans
 ## Tests
 
 ```bash
-node test.mjs
+node test.mjs          # chain rules
+node test-miner.mjs    # miner consent, limits, clean shutdown (uses a private mock node)
 ```
 
 ## Status
