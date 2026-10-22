@@ -1,28 +1,229 @@
-<!doctype html><html><head><meta charset="utf-8"><title>ZAK Chain Explorer</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>ZAK Chain Explorer</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Live block explorer for a ZAK Chain node: blocks, transfers, addresses, mempool and difficulty.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f1a'/%3E%3Cpath d='M18 18h28L20 46h26' fill='none' stroke='%23f5b301' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-body{font-family:system-ui,sans-serif;background:#0b0f1a;color:#e6e9f0;margin:0;padding:24px;max-width:960px;margin:auto}
-h1{margin:0 0 4px}.sub{color:#8a93a8;margin-bottom:20px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
-.card{background:#151b2b;border-radius:10px;padding:14px}.card b{display:block;font-size:22px;margin-top:4px}
-input{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #2a3350;background:#151b2b;color:#e6e9f0;font-family:monospace}
-button{margin-top:8px;padding:9px 16px;border:0;border-radius:8px;background:#f5b301;font-weight:600;cursor:pointer}
-.block{background:#151b2b;border-radius:10px;padding:12px;margin:10px 0;font-family:monospace;font-size:12px;word-break:break-all}
-.ok{color:#4ade80}.bad{color:#f87171}#bal{margin-top:10px;font-size:18px}
-</style></head><body>
-<h1>⛓️ ZAK Chain Explorer</h1><div class="sub">Live view of the ZAK Chain network</div>
-<div class="cards"><div class="card">Height<b id="h">…</b></div><div class="card">Chain valid<b id="v">…</b></div>
-<div class="card">Pending transfers<b id="p">…</b></div><div class="card">Peers<b id="peers">…</b></div><div class="card">Difficulty (bits)<b id="bits">…</b></div><div class="card">Total work<b id="work">…</b></div></div>
-<h3>Check a wallet</h3><input id="addr" placeholder="Paste a ZAK address"><button onclick="bal()">Check balance</button><div id="bal"></div>
-<h3>Latest blocks</h3><div id="blocks"></div>
+:root{--bg:#0b0f1a;--panel:#151b2b;--panel2:#1b2337;--line:#2a3350;--text:#e6e9f0;--muted:#8a93a8;--gold:#f5b301;--ok:#4ade80;--bad:#f87171;--blue:#60a5fa}
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;line-height:1.5}
+a{color:var(--gold);text-decoration:none}a:hover{text-decoration:underline}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1040px;margin:auto;padding:20px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:18px}
+header h1{margin:0;font-size:24px}header h1 a{color:var(--text)}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted);margin-right:6px}
+.live .dot{background:var(--ok);box-shadow:0 0 0 0 #4ade8099;animation:pulse 2s infinite}.off .dot{background:var(--bad)}
+@keyframes pulse{70%{box-shadow:0 0 0 8px #4ade8000}100%{box-shadow:0 0 0 0 #4ade8000}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#status{color:var(--muted);font-size:13px}nav.top{display:flex;gap:16px;font-weight:600}
+form.search{display:flex;gap:8px;flex:1;min-width:260px}
+input{flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-family:ui-monospace,monospace;font-size:13px}
+button{padding:9px 14px;border:0;border-radius:8px;background:var(--gold);color:#111;font-weight:700;cursor:pointer}button.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.card{background:var(--panel);border-radius:10px;padding:12px 14px}.card small{color:var(--muted)}.card b{display:block;font-size:21px;margin-top:2px;font-variant-numeric:tabular-nums}
+.panel{background:var(--panel);border-radius:12px;padding:16px;margin-bottom:16px;overflow:hidden}.panel h2{font-size:16px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.panel h2 small{color:var(--muted);font-weight:400;font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.two{grid-template-columns:1fr}.hide-sm{display:none}}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--muted);font-weight:500;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid #1f2740;vertical-align:top}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}
+.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-all}.muted{color:var(--muted)}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:6px 14px;font-size:14px}.kv>div:nth-child(odd){color:var(--muted)}@media(max-width:600px){.kv{grid-template-columns:1fr}.kv>div:nth-child(odd){margin-top:6px}}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);margin-left:6px;vertical-align:middle}
+.copy{background:none;border:0;color:var(--muted);padding:0 4px;font-size:13px;cursor:pointer}.copy:hover{color:var(--gold)}
+.zeros{color:var(--gold)}svg text{fill:var(--muted);font-size:10px}.empty{color:var(--muted);padding:6px 0}
+.pager{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
+.banner{background:#3a1d1d;border:1px solid #7f2d2d;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:none}.off .banner{display:block}
+footer{color:var(--muted);font-size:13px;margin:26px 0 10px}
+</style></head><body><div class="wrap" id="app">
+<header><h1><a href="#/">⛓️ ZAK Explorer</a></h1>
+<nav class="top" aria-label="Explorer sections"><a href="#/">Overview</a><a href="#/blocks">Blocks</a><a href="#/accounts">Accounts</a><a href="#/mempool">Mempool</a></nav>
+<form class="search" role="search" onsubmit="return search(event)"><label for="q" class="sr" hidden>Search</label><input id="q" placeholder="Search height, hash, tx or address  ( / )" aria-label="Search by block height, block hash, transaction signature or address"><button>Search</button></form>
+<div id="status" aria-live="polite"><span class="dot"></span><span id="stxt">connecting…</span> <button class="copy" id="pause" onclick="togglePause()" title="Pause or resume auto-refresh">⏸</button></div></header>
+<div class="banner" role="alert">Can't reach the ZAK node. Showing the last data received; retrying every 5 seconds.</div>
+<main id="view"><p class="muted">Loading…</p></main>
+<footer>Reads from one ZAK Chain node through this explorer's read-only proxy. ZAK Chain is an educational project; ZAK has no monetary value. <a href="https://github.com/zeze6544/zakchain">Source</a></footer>
+</div>
 <script>
-const short=s=>s?s.slice(-12):'';
-async function load(){
-  const info=await (await fetch('/api/info')).json(), chain=await (await fetch('/api/chain')).json();
-  h.textContent=info.height; v.innerHTML=info.valid?'<span class=ok>Yes</span>':'<span class=bad>No</span>';
-  p.textContent=info.pending; peers.textContent=info.peers.length;bits.textContent=info.bits??'–';work.textContent=(info.work??0).toLocaleString();
-  blocks.innerHTML=chain.slice().reverse().slice(0,20).map(b=>`<div class=block><b>Block #${b.index}</b> · ${new Date(b.time).toLocaleString()} · difficulty ${b.bits??'–'}${b.miner?` · mined by …${short(b.miner)}`:''}<br>hash ${b.hash}<br>${b.txs.map(t=>t.genesis?`Genesis: ${t.amount.toLocaleString()} ZAK to …${short(t.to)}`:`${t.amount.toLocaleString()} ZAK: …${short(t.from)} → …${short(t.to)}${t.fee?` (fee ${t.fee} ZAK)`:''}`).join('<br>')}</div>`).join('');
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Number(n ?? 0).toLocaleString();
+const SPKI = '302a300506032b6570032100';                       // every Ed25519 address starts with this DER prefix
+const short = (s, n = 10) => s ? '…' + s.slice(-n) : '';
+const ago = t => { const s = Math.max(0, (Date.now() - t) / 1000); return s < 60 ? Math.round(s) + 's ago' : s < 3600 ? Math.round(s / 60) + 'm ago' : s < 86400 ? Math.round(s / 3600) + 'h ago' : Math.round(s / 86400) + 'd ago'; };
+const dur = ms => ms < 1000 ? ms + ' ms' : ms < 60000 ? (ms / 1000).toFixed(1) + ' s' : ms < 3600000 ? (ms / 60000).toFixed(1) + ' min' : (ms / 3600000).toFixed(1) + ' h';
+const copyBtn = v => `<button class="copy" title="Copy" aria-label="Copy" data-copy="${esc(v)}">copy</button>`;
+const zeroHex = h => { const m = /^0*/.exec(h)[0]; return `<span class="zeros">${m}</span>${esc(h.slice(m.length))}`; };
+const pct = f => { const p = f * 100; return (p >= 99.99 && p < 100 ? p.toFixed(6) : p < 0.01 ? p.toFixed(6) : p.toFixed(2)) + '%'; };
+const isHex = s => /^[0-9a-f]+$/i.test(s);
+
+let info = null, chain = [], pending = [], state = null, lastTip = '', lastPending = -1, paused = false, online = false, lastOk = 0, genesisAddr = '';
+
+// Rebuild balances, nonces and per-address history from the chain, the same way a node replays it.
+function derive() {
+  const bal = {}, nonce = {}, hist = {}, txIndex = {}, hashIndex = {}, recv = {};
+  const add = (a, e) => (hist[a] ||= []).push(e);
+  for (const b of chain) {
+    hashIndex[b.hash] = b.index; let fees = 0;
+    b.txs.forEach((t, i) => {
+      if (t.genesis) { bal[t.to] = (bal[t.to] || 0) + t.amount; genesisAddr = t.to; add(t.to, { b, t, i, dir: 'in' }); return; }
+      bal[t.from] = (bal[t.from] || 0) - t.amount - t.fee; bal[t.to] = (bal[t.to] || 0) + t.amount; nonce[t.from] = t.nonce; fees += t.fee;
+      txIndex[t.sig] = { b, t, i }; add(t.from, { b, t, i, dir: 'out' }); if (t.to !== t.from) add(t.to, { b, t, i, dir: 'in' });
+    });
+    if (b.miner) { (recv[b.miner] ||= { blocks: 0, fees: 0 }); recv[b.miner].blocks++; recv[b.miner].fees += fees; if (fees) { bal[b.miner] = (bal[b.miner] || 0) + fees; add(b.miner, { b, fees, dir: 'fee' }); } }
+  }
+  state = { bal, nonce, hist, txIndex, hashIndex, recv, txCount: Object.keys(txIndex).length };
 }
-async function bal(){const a=addr.value.trim();if(!a)return;const r=await (await fetch('/api/balance?address='+encodeURIComponent(a))).json();document.getElementById('bal').textContent=`${r.balance.toLocaleString()} ZAK`;}
-load();setInterval(load,5000);
+const label = a => a === genesisAddr ? '<span class="tag">genesis wallet</span>' : '';
+const addrLink = (a, n) => a ? `<a class="mono" href="#/address/${esc(a)}" title="${esc(a)}">${esc(short(a, n))}</a>` : '<span class="muted">none</span>';
+const blockLink = i => `<a href="#/block/${i}">#${i}</a>`;
+const txLink = s => `<a class="mono" href="#/tx/${esc(s)}" title="${esc(s)}">${esc(s.slice(0, 12))}…</a>`;
+
+async function getJSON(p) { const r = await fetch('api' + p, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); }
+async function refresh(force) {
+  if (paused && !force) return;
+  try {
+    const i = await getJSON('/info');
+    const changed = i.tip !== lastTip || i.pending !== lastPending;
+    if (changed || force) {
+      const [c, p] = await Promise.all([i.tip !== lastTip || force ? getJSON('/chain') : chain, getJSON('/pending').catch(() => [])]);
+      chain = c; pending = p; lastTip = i.tip; lastPending = i.pending; derive();
+    }
+    info = i; online = true; lastOk = Date.now();
+    if (changed || force) render(); else if (route().name === 'home') renderCards();
+  } catch { online = false; if (!info) $('view').innerHTML = '<p class="bad">Can\'t reach the ZAK node behind this explorer.</p>'; }
+  setStatus();
+}
+function setStatus() {
+  document.getElementById('app').className = 'wrap ' + (online ? 'live' : 'off');
+  $('stxt').textContent = !info ? 'connecting…' : (online ? (paused ? 'paused' : 'live') : 'offline') + ` · height ${fmt(info.height)} · updated ${ago(lastOk)}`;
+  $('pause').textContent = paused ? '▶' : '⏸';
+}
+function togglePause() { paused = !paused; setStatus(); if (!paused) refresh(true); }
+
+function route() {
+  const [, name = '', arg = ''] = decodeURIComponent(location.hash.replace(/^#/, '')).split('/');
+  return { name: name || 'home', arg };
+}
+function search(e) {
+  e.preventDefault(); const q = $('q').value.trim().replace(/^…/, ''); if (!q || !state) return false;
+  let to = null;
+  if (/^\d+$/.test(q) && +q < chain.length) to = '#/block/' + q;
+  else if (state.hashIndex[q] !== undefined) to = '#/block/' + state.hashIndex[q];
+  else if (state.txIndex[q] || pending.some(t => t.sig === q)) to = '#/tx/' + q;
+  else if (state.hist[q] || state.bal[q] !== undefined || (isHex(q) && q.startsWith(SPKI) && q.length === 88)) to = '#/address/' + q;
+  else if (isHex(q) && q.length >= 6) {               // partial match on the end (or start) of an address, hash or signature
+    const lq = q.toLowerCase(), m = s => s.endsWith(lq) || s.startsWith(lq) && lq.length >= 8;
+    const a = Object.keys(state.hist).find(m), h = Object.keys(state.hashIndex).find(m), t = Object.keys(state.txIndex).find(m);
+    to = a ? '#/address/' + a : h ? '#/block/' + state.hashIndex[h] : t ? '#/tx/' + t : null;
+  }
+  if (to) { location.hash = to; $('q').value = ''; } else { $('view').innerHTML = `<div class="panel"><h2>No match</h2><p class="muted">Nothing on this chain matches <span class="mono">${esc(q)}</span>. Try a block height (0–${chain.length - 1}), a full block hash, a transaction signature, or an address (or its last 8+ characters).</p><p><a href="#/">Back to overview</a></p></div>`; }
+  return false;
+}
+
+function txRows(list, showBlock = true) {
+  if (!list.length) return '<p class="empty">No transfers.</p>';
+  return `<table><thead><tr><th>Tx</th>${showBlock ? '<th class="hide-sm">Block</th>' : ''}<th>From</th><th>To</th><th class="num">Amount</th><th class="num hide-sm">Fee</th></tr></thead><tbody>${list.map(({ b, t }) => `<tr><td>${t.genesis ? '<span class="tag">genesis</span>' : txLink(t.sig)}</td>${showBlock ? `<td class="hide-sm">${b ? blockLink(b.index) : '<span class="muted">pending</span>'}</td>` : ''}<td>${t.genesis ? '<span class="muted">minted once</span>' : addrLink(t.from)}</td><td>${addrLink(t.to)}</td><td class="num">${fmt(t.amount)} ZAK</td><td class="num hide-sm">${t.genesis ? '' : fmt(t.fee)}</td></tr>`).join('')}</tbody></table>`;
+}
+function blockRows(list) {
+  return `<table><thead><tr><th>Height</th><th>Hash</th><th class="hide-sm">Mined</th><th class="num">Txs</th><th class="num">Bits</th><th class="hide-sm">Miner</th></tr></thead><tbody>${list.map(b => `<tr><td>${blockLink(b.index)}</td><td class="mono"><a href="#/block/${b.index}">${zeroHex(b.hash.slice(0, 18))}…</a></td><td class="hide-sm" title="${esc(new Date(b.time).toLocaleString())}">${ago(b.time)}</td><td class="num">${b.txs.length}</td><td class="num">${b.bits ?? '–'}</td><td class="hide-sm">${b.miner ? addrLink(b.miner, 8) : '<span class="muted">–</span>'}</td></tr>`).join('')}</tbody></table>`;
+}
+
+// Small dependency-free SVG line chart.
+function chart(points, { h = 120, yLabel = v => v, log = false, color = '#f5b301', step = false } = {}) {
+  if (points.length < 2) return '<p class="empty">Not enough blocks yet.</p>';
+  const W = 480, L = 38, R = 6, T = 8, B = 18, f = log ? v => Math.log10(Math.max(v, 1)) : v => v;
+  const ys = points.map(p => f(p[1])), xs = points.map(p => p[0]);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys); if (y0 === y1) { y0 -= 1; y1 += 1; }
+  const x0 = xs[0], x1 = xs.at(-1) || 1, X = x => L + (x - x0) / ((x1 - x0) || 1) * (W - L - R), Y = y => T + (1 - (y - y0) / (y1 - y0)) * (h - T - B);
+  let d = ''; points.forEach((p, i) => { const x = X(p[0]), y = Y(ys[i]); d += i ? (step ? `H${x.toFixed(1)}V${y.toFixed(1)}` : `L${x.toFixed(1)},${y.toFixed(1)}`) : `M${x.toFixed(1)},${y.toFixed(1)}`; });
+  const ticks = [y0, (y0 + y1) / 2, y1].map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#2a3350" stroke-dasharray="3 3"/><text x="${L - 4}" y="${Y(v) + 3}" text-anchor="end">${esc(yLabel(log ? 10 ** v : v))}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${h}" width="100%" role="img" aria-label="chart">${ticks}<path d="${d}" fill="none" stroke="${color}" stroke-width="1.8"/><text x="${L}" y="${h - 4}">#${x0}</text><text x="${W - R}" y="${h - 4}" text-anchor="end">#${x1}</text></svg>`;
+}
+
+function renderCards() {
+  const tip = chain.at(-1), recent = chain.slice(-11), span = recent.length > 1 ? (recent.at(-1).time - recent[0].time) / (recent.length - 1) : 0;
+  const el = $('cards'); if (!el) return;
+  el.innerHTML = [
+    ['Height', fmt(info.height)], ['Chain valid', info.valid ? '<span class="ok">Yes</span>' : '<span class="bad">No</span>'],
+    ['Difficulty', `${info.bits ?? '–'} bits`], ['Avg block time', span ? dur(Math.round(span)) : '–'],
+    ['Total work', fmt(info.work)], ['Transfers', fmt(state.txCount)], ['Mempool', fmt(info.pending)], ['Peers', fmt(info.peers.length)],
+  ].map(([k, v]) => `<div class="card"><small>${k}</small><b>${v}</b></div>`).join('') +
+    `<div class="card" style="grid-column:1/-1"><small>Tip</small><div class="mono"><a href="#/block/${tip.index}">${zeroHex(tip.hash)}</a> · mined ${ago(tip.time)}</div></div>`;
+}
+
+const views = {
+  home() {
+    const latestTx = []; for (let i = chain.length - 1; i >= 0 && latestTx.length < 8; i--) for (const t of [...chain[i].txs].reverse()) if (latestTx.length < 8) latestTx.push({ b: chain[i], t });
+    const mined = chain.slice(1), intervals = mined.map(b => [b.index, b.time - chain[b.index - 1].time]);
+    return `<div class="cards" id="cards"></div>
+    <div class="two"><div class="panel"><h2>Difficulty <small>leading zero bits required per block</small></h2>${chart(chain.map(b => [b.index, b.bits ?? 0]), { step: true, yLabel: v => Number.isInteger(v) ? v : '' })}</div>
+    <div class="panel"><h2>Block interval <small>time since previous block (log scale; target 10 s)</small></h2>${chart(intervals, { log: true, color: '#60a5fa', yLabel: v => dur(Math.round(v)) })}</div></div>
+    <div class="panel"><h2>Peers <small>nodes this node gossips with</small></h2>${info.peers.length ? info.peers.map(p => `<span class="tag mono" style="margin:0 6px 6px 0">${esc(p)}</span>`).join('') : '<p class="empty">No peers configured (set PEERS=… when starting the node).</p>'}</div>
+    <div class="panel"><h2>Latest blocks <a href="#/blocks"><small>all blocks →</small></a></h2>${blockRows(chain.slice(-10).reverse())}</div>
+    <div class="two"><div class="panel"><h2>Latest transfers</h2>${txRows(latestTx)}</div>
+    <div class="panel"><h2>Mempool <a href="#/mempool"><small>${fmt(pending.length)} waiting →</small></a></h2>${pending.length ? txRows(pending.slice(0, 8).map(t => ({ t }))) : '<p class="empty">No transfers waiting. New transfers appear here until a miner includes them in a block.</p>'}</div></div>`;
+  },
+  blocks(arg) {
+    const per = 25, pages = Math.ceil(chain.length / per), p = Math.min(Math.max(+arg || 1, 1), pages);
+    const list = chain.slice().reverse().slice((p - 1) * per, p * per);
+    return `<div class="panel"><h2>All blocks <small>page ${p} of ${pages} · ${fmt(chain.length)} blocks</small></h2>${blockRows(list)}
+    <div class="pager"><span>${p > 1 ? `<a href="#/blocks/${p - 1}">← Newer</a>` : ''}</span><span>${p < pages ? `<a href="#/blocks/${p + 1}">Older →</a>` : ''}</span></div></div>`;
+  },
+  block(arg) {
+    const i = /^\d+$/.test(arg) ? +arg : state.hashIndex[arg], b = chain[i];
+    if (!b) return notFound('block', arg);
+    const prev = chain[i - 1], fees = b.txs.reduce((s, t) => s + (t.fee || 0), 0), z = /^0*/.exec(b.hash)[0].length;
+    return `<div class="panel"><h2>Block #${b.index} ${b.index === 0 ? '<span class="tag">genesis</span>' : ''}${b.index === chain.length - 1 ? '<span class="tag">tip</span>' : ''}</h2>
+    <div class="kv"><div>Hash</div><div class="mono">${zeroHex(b.hash)} ${copyBtn(b.hash)}</div>
+    <div>Previous hash</div><div class="mono">${prev ? `<a href="#/block/${prev.index}">${zeroHex(b.prev)}</a>` : esc(b.prev)}</div>
+    <div>Mined</div><div>${esc(new Date(b.time).toLocaleString())} <span class="muted">(${ago(b.time)}${prev ? `, ${dur(b.time - prev.time)} after #${prev.index}` : ''})</span></div>
+    <div>Difficulty</div><div>${b.bits ?? '–'} leading zero bits <span class="muted">(hash has ${z} leading zero hex digits = at least ${z * 4} bits; expected ≈ ${fmt(2 ** (b.bits || 0))} tries)</span></div>
+    <div>Nonce</div><div class="mono">${fmt(b.nonce)}</div>
+    <div>Miner</div><div>${b.miner ? addrLink(b.miner, 16) + label(b.miner) : '<span class="muted">none (genesis)</span>'}</div>
+    <div>Transfers</div><div>${b.txs.length}${fees ? ` · ${fmt(fees)} ZAK in fees to the miner` : ''}</div></div>
+    <div class="pager"><span>${prev ? `<a href="#/block/${prev.index}">← #${prev.index}</a>` : ''}</span><span>${chain[i + 1] ? `<a href="#/block/${i + 1}">#${i + 1} →</a>` : ''}</span></div></div>
+    <div class="panel"><h2>Transfers in this block</h2>${txRows(b.txs.map(t => ({ b, t })), false)}</div>
+    <div class="panel"><h2>Raw block <small>exactly what the node returned</small></h2><pre class="mono" style="white-space:pre-wrap;margin:0">${esc(JSON.stringify(b, null, 2))}</pre></div>`;
+  },
+  tx(arg) {
+    const hit = state.txIndex[arg], pend = pending.find(t => t.sig === arg), t = hit?.t || pend;
+    if (!t) return notFound('transfer', arg);
+    const conf = hit ? chain.length - hit.b.index : 0;
+    return `<div class="panel"><h2>Transfer ${hit ? `<span class="tag ok">confirmed · ${fmt(conf)} block${conf === 1 ? '' : 's'} deep</span>` : '<span class="tag">pending in mempool</span>'}</h2>
+    <div class="kv"><div>Signature</div><div class="mono">${esc(t.sig)} ${copyBtn(t.sig)}</div>
+    <div>From</div><div>${addrLink(t.from, 20)}${label(t.from)}</div><div>To</div><div>${addrLink(t.to, 20)}${label(t.to)}</div>
+    <div>Amount</div><div>${fmt(t.amount)} ZAK</div><div>Fee</div><div>${fmt(t.fee)} ZAK ${hit && hit.b.miner ? `<span class="muted">→ miner ${addrLink(hit.b.miner)}</span>` : ''}</div>
+    <div>Sender nonce</div><div>${fmt(t.nonce)} <span class="muted">(this sender's transfer number ${fmt(t.nonce)}; a repeat would be rejected)</span></div>
+    <div>Block</div><div>${hit ? `${blockLink(hit.b.index)} · position ${hit.i} · ${esc(new Date(hit.b.time).toLocaleString())}` : '<span class="muted">not yet mined</span>'}</div></div></div>
+    <div class="panel"><h2>What was signed</h2><p class="muted" style="margin-top:0">The sender's Ed25519 key signed this exact JSON. Change any field and the signature no longer verifies.</p><pre class="mono" style="white-space:pre-wrap;margin:0">${esc(JSON.stringify([t.from, t.to, t.amount, t.fee, t.nonce]))}</pre></div>`;
+  },
+  address(arg) {
+    const a = arg, h = (state.hist[a] || []).slice().reverse(), bal = state.bal[a] || 0, r = state.recv[a];
+    const inn = h.filter(e => e.dir === 'in').reduce((s, e) => s + e.t.amount, 0), out = h.filter(e => e.dir === 'out').reduce((s, e) => s + e.t.amount + e.t.fee, 0);
+    const pend = pending.filter(t => t.from === a || t.to === a);
+    return `<div class="panel"><h2>Address ${label(a)}</h2><div class="mono" style="margin-bottom:12px">${esc(a)} ${copyBtn(a)}</div>
+    <div class="cards" style="margin:0"><div class="card"><small>Balance</small><b>${fmt(bal)} ZAK</b></div><div class="card"><small>Received</small><b>${fmt(inn)}</b></div><div class="card"><small>Sent (incl. fees)</small><b>${fmt(out)}</b></div>
+    <div class="card"><small>Nonce</small><b>${fmt(state.nonce[a] || 0)}</b></div>${r ? `<div class="card"><small>Blocks mined</small><b>${fmt(r.blocks)}</b></div><div class="card"><small>Fees earned</small><b>${fmt(r.fees)}</b></div>` : ''}</div>
+    <p class="muted" style="font-size:13px;margin-bottom:0">Balance is replayed from the chain in your browser. <button class="copy" onclick="checkBal('${esc(a)}')">Cross-check with the node ↻</button> <span id="nodebal"></span></p></div>
+    ${pend.length ? `<div class="panel"><h2>Pending</h2>${txRows(pend.map(t => ({ t })))}</div>` : ''}
+    <div class="panel"><h2>History <small>${fmt(h.length)} entr${h.length === 1 ? 'y' : 'ies'}, newest first</small></h2>${h.length ? `<table><thead><tr><th>Block</th><th>Type</th><th>Counterparty</th><th class="num">Change</th></tr></thead><tbody>${h.slice(0, 200).map(e => e.dir === 'fee' ? `<tr><td>${blockLink(e.b.index)}</td><td>mining fees</td><td class="muted">–</td><td class="num ok">+${fmt(e.fees)}</td></tr>` : `<tr><td>${blockLink(e.b.index)}</td><td>${e.t.genesis ? 'genesis' : txLink(e.t.sig) + (e.dir === 'in' ? ' in' : ' out')}</td><td>${e.t.genesis ? '<span class="muted">minted once</span>' : addrLink(e.dir === 'in' ? e.t.from : e.t.to)}</td><td class="num ${e.dir === 'in' ? 'ok' : 'bad'}">${e.dir === 'in' ? '+' + fmt(e.t.amount) : '−' + fmt(e.t.amount + e.t.fee)}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">This address has never appeared on the chain.</p>'}</div>`;
+  },
+  accounts() {
+    const rows = Object.entries(state.bal).filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]), total = rows.reduce((s, [, v]) => s + v, 0);
+    return `<div class="panel"><h2>Accounts <small>${fmt(rows.length)} addresses hold ZAK · total ${fmt(total)} ZAK ${total === 1e9 ? '<span class="ok">= fixed supply ✓</span>' : '<span class="bad">≠ 1,000,000,000</span>'}</small></h2>
+    <table><thead><tr><th>#</th><th>Address</th><th class="num">Balance</th><th class="num hide-sm">Share</th><th class="num hide-sm">Blocks mined</th></tr></thead><tbody>${rows.map(([a, v], i) => `<tr><td>${i + 1}</td><td>${addrLink(a, 16)}${label(a)}</td><td class="num">${fmt(v)}</td><td class="num hide-sm">${pct(v / total)}</td><td class="num hide-sm">${fmt(state.recv[a]?.blocks || 0)}</td></tr>`).join('')}</tbody></table></div>`;
+  },
+  mempool() {
+    return `<div class="panel"><h2>Mempool <small>signed transfers waiting for a miner</small></h2>${pending.length ? txRows(pending.map(t => ({ t }))) : '<p class="empty">Empty. Send a transfer with <span class="mono">node wallet.mjs send …</span> and it will show up here until the next block is mined.</p>'}</div>`;
+  },
+};
+function notFound(kind, arg) { return `<div class="panel"><h2>No ${kind} found</h2><p class="muted">Nothing matches <span class="mono">${esc(arg)}</span> on this node's chain.</p><p><a href="#/">Back to overview</a></p></div>`; }
+function render() {
+  if (!state) return; const { name, arg } = route(), v = views[name] || views.home;
+  const y = window.scrollY; $('view').innerHTML = v(arg); if (name === 'home') renderCards(); window.scrollTo(0, y);
+  document.title = (name === 'home' ? '' : name[0].toUpperCase() + name.slice(1) + (arg ? ' ' + short(arg, 8).replace('…', arg.length > 12 ? '…' : '') : '') + ' · ') + 'ZAK Chain Explorer';
+}
+async function checkBal(a) { try { const r = await getJSON('/balance?address=' + encodeURIComponent(a)); $('nodebal').innerHTML = r.balance === (state.bal[a] || 0) ? `<span class="ok">node agrees: ${fmt(r.balance)} ZAK</span>` : `<span class="bad">node says ${fmt(r.balance)} ZAK</span>`; } catch { $('nodebal').textContent = 'node unreachable'; } }
+document.addEventListener('click', e => { const c = e.target.closest('[data-copy]'); if (c) { navigator.clipboard?.writeText(c.dataset.copy); c.textContent = 'copied'; setTimeout(() => c.textContent = 'copy', 1200); } });
+addEventListener('keydown', e => { if (e.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); $('q').focus(); } });
+addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+refresh(true); setInterval(refresh, 5000); setInterval(setStatus, 1000);
 </script></body></html>
