@@ -1,6 +1,9 @@
 // ZAK native miner: zakminer <headerHashHex> <bits> <threads> <startNonce>
 // Hashes sha256(header32 || nonce_be64) on every thread until one has >= bits leading zero bits.
 // Prints "FOUND <nonce> <hashHex>" or periodic "RATE <hashes>" lines on stdout.
+// Safety: this binary is only ever started by miner.mjs. It never forks, installs nothing, opens no network
+// sockets, and exits by itself if its parent dies (PR_SET_PDEATHSIG on Linux plus a getppid() watchdog), so a
+// crashed or killed miner.mjs cannot leave an orphaned hashing process behind.
 #include <openssl/sha.h>
 #include <pthread.h>
 #include <stdatomic.h>
@@ -9,6 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif
 #include "shani.h"
 static const uint32_t IV[8]={0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19};
 static int use_shani;
@@ -50,11 +57,18 @@ int main(int argc, char **argv) {
   if (argc < 5 || strlen(argv[1]) != 64) { fprintf(stderr, "usage: zakminer <headerHashHex> <bits> <threads> <startNonce>\n"); return 1; }
   for (int i = 0; i < 32; i++) sscanf(argv[1] + 2 * i, "%2hhx", &header[i]);
   bits = atoi(argv[2]); threads = atoi(argv[3]); start = strtoull(argv[4], NULL, 10);
+  pid_t parent = getppid();
+#ifdef __linux__
+  prctl(PR_SET_PDEATHSIG, SIGKILL);
+  if (getppid() != parent) return 1;   // parent already gone before prctl took effect
+#endif
   __builtin_cpu_init(); use_shani = getenv("ZAK_NO_SHANI") ? 0 : 1;
   { unsigned a,b,c,d; __asm__("cpuid":"=a"(a),"=b"(b),"=c"(c),"=d"(d):"a"(7),"c"(0)); if (!(b & (1u<<29))) use_shani = 0; }
   pthread_t t[256]; if (threads < 1 || threads > 256) threads = 1;
   for (long i = 0; i < threads; i++) pthread_create(&t[i], NULL, work, (void *)i);
-  while (!atomic_load(&done)) { usleep(1000000); printf("RATE %llu\n", (unsigned long long)atomic_exchange(&total, 0)); fflush(stdout); }
+  while (!atomic_load(&done)) {
+    for (int i = 0; i < 10 && !atomic_load(&done); i++) { usleep(100000); if (getppid() != parent) _exit(0); }
+    printf("RATE %llu\n", (unsigned long long)atomic_exchange(&total, 0)); fflush(stdout); }
   for (int i = 0; i < threads; i++) pthread_join(t[i], NULL);
   return 0;
 }
