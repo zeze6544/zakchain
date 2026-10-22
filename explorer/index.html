@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>ZAK Chain Explorer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:system-ui,sans-serif;background:#0b0f1a;color:#e6e9f0;margin:0;padding:24px;max-width:960px;margin:auto}
+h1{margin:0 0 4px}.sub{color:#8a93a8;margin-bottom:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.card{background:#151b2b;border-radius:10px;padding:14px}.card b{display:block;font-size:22px;margin-top:4px}
+input{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #2a3350;background:#151b2b;color:#e6e9f0;font-family:monospace}
+button{margin-top:8px;padding:9px 16px;border:0;border-radius:8px;background:#f5b301;font-weight:600;cursor:pointer}
+.block{background:#151b2b;border-radius:10px;padding:12px;margin:10px 0;font-family:monospace;font-size:12px;word-break:break-all}
+.ok{color:#4ade80}.bad{color:#f87171}#bal{margin-top:10px;font-size:18px}
+</style></head><body>
+<h1>⛓️ ZAK Chain Explorer</h1><div class="sub">Live view of the ZAK Chain network</div>
+<div class="cards"><div class="card">Height<b id="h">…</b></div><div class="card">Chain valid<b id="v">…</b></div>
+<div class="card">Pending transfers<b id="p">…</b></div><div class="card">Peers<b id="peers">…</b></div><div class="card">Difficulty (bits)<b id="bits">…</b></div><div class="card">Total work<b id="work">…</b></div></div>
+<h3>Check a wallet</h3><input id="addr" placeholder="Paste a ZAK address"><button onclick="bal()">Check balance</button><div id="bal"></div>
+<h3>Latest blocks</h3><div id="blocks"></div>
+<script>
+const short=s=>s?s.slice(-12):'';
+async function load(){
+  const info=await (await fetch('/api/info')).json(), chain=await (await fetch('/api/chain')).json();
+  h.textContent=info.height; v.innerHTML=info.valid?'<span class=ok>Yes</span>':'<span class=bad>No</span>';
+  p.textContent=info.pending; peers.textContent=info.peers.length;bits.textContent=info.bits??'–';work.textContent=(info.work??0).toLocaleString();
+  blocks.innerHTML=chain.slice().reverse().slice(0,20).map(b=>`<div class=block><b>Block #${b.index}</b> · ${new Date(b.time).toLocaleString()} · difficulty ${b.bits??'–'}${b.miner?` · mined by …${short(b.miner)}`:''}<br>hash ${b.hash}<br>${b.txs.map(t=>t.genesis?`Genesis: ${t.amount.toLocaleString()} ZAK to …${short(t.to)}`:`${t.amount.toLocaleString()} ZAK: …${short(t.from)} → …${short(t.to)}${t.fee?` (fee ${t.fee} ZAK)`:''}`).join('<br>')}</div>`).join('');
+}
+async function bal(){const a=addr.value.trim();if(!a)return;const r=await (await fetch('/api/balance?address='+encodeURIComponent(a))).json();document.getElementById('bal').textContent=`${r.balance.toLocaleString()} ZAK`;}
+load();setInterval(load,5000);
+</script></body></html>
