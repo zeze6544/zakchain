@@ -1,0 +1,20 @@
+{
+  "brand": "Zaks.life",
+  "updated": "2026-10-23T02:13:39+11:00",
+  "statuses": ["live", "draft", "blocked-payout", "coming-soon", "waiting-on-james", "needs designs"],
+  "items": [
+    {"name": "Sole Trader Invoice & Tax Kit", "category": "digital", "platform": "Gumroad", "price": "A$24", "status": "blocked-payout", "url": "https://zakslife.gumroad.com/l/ocgbqkg", "notes": "Saved as unpublished draft; goes live once a payout method is connected.", "updated": "2026-10-23T02:09:33+11:00"},
+    {"name": "Tradie Quote & Timesheet Pack", "category": "digital", "platform": "Gumroad", "price": "A$19", "status": "blocked-payout", "url": "https://zakslife.gumroad.com/l/fhjijk", "notes": "Saved as unpublished draft; goes live once a payout method is connected.", "updated": "2026-10-23T02:09:33+11:00"},
+    {"name": "Local business website build", "category": "service", "platform": "Airtasker / Fiverr / direct", "price": "from A$400", "status": "waiting-on-james", "url": "", "notes": "First batch of 7 local pitches drafted, awaiting send.", "updated": "2026-10-23T02:09:33+11:00"},
+    {"name": "lost.pink custom gaming PCs", "category": "app", "platform": "lost.pink (own shop)", "price": "Built to order, e.g. Ridge Gaming Tower A$3,596", "status": "live", "url": "https://lost.pink", "notes": "Custom built-to-order gaming PCs.", "updated": "2026-10-23T02:09:33+11:00"},
+    {"name": "EasyInvoice (Invoice Buddy)", "category": "app", "platform": "Web app (Lovable)", "price": "TBC", "status": "coming-soon", "url": "", "notes": "Launch planned on Product Hunt, DevHunt, Uneed, AppSumo.", "updated": "2026-10-23T02:09:33+11:00"},
+    {"name": "Lovable app templates", "category": "digital", "platform": "TBC", "price": "TBC", "status": "coming-soon", "url": "", "notes": "Templates in progress.", "updated": "2026-10-23T02:09:33+11:00"},
+    {"name": "Doofs.world merch", "category": "merch", "platform": "Redbubble", "price": "TBC", "status": "needs designs", "url": "https://www.redbubble.com/people/doofsworld", "notes": "6-8 original designs in progress.", "updated": "2026-10-23T02:13:39+11:00"},
+    {"name": "zaks.life portfolio", "category": "app", "platform": "Lovable", "price": "-", "status": "draft", "url": null, "notes": "Private draft preview; not yet published.", "updated": "2026-10-23T02:13:39+11:00"},
+    {"name": "Tradie website template (Lovable)", "category": "digital", "platform": "Gumroad (planned)", "price": "TBD", "status": "draft", "url": null, "notes": "", "updated": "2026-10-23T02:13:39+11:00"},
+    {"name": "EasyInvoice setup service", "category": "service", "platform": "Fiverr/Upwork/Contra/Airtasker", "price": "TBD", "status": "waiting-on-james", "url": null, "notes": "", "updated": "2026-10-23T02:13:39+11:00"},
+    {"name": "Custom gaming PC spec & build service", "category": "service", "platform": "Fiverr/Upwork/Contra/Airtasker", "price": "TBD", "status": "waiting-on-james", "url": null, "notes": "", "updated": "2026-10-23T02:13:39+11:00"},
+    {"name": "Dropshipping products (CJdropshipping, AU-fast shipping)", "category": "dropshipping", "platform": "Shopify (planned)", "price": "TBD", "status": "coming-soon", "url": null, "notes": "", "updated": "2026-10-23T02:13:39+11:00"},
+    {"name": "Payhip shop", "category": "digital", "platform": "Payhip", "price": "TBD", "status": "draft", "url": "https://payhip.com/zakslife", "notes": "", "updated": "2026-10-23T02:13:39+11:00"}
+  ]
+}
