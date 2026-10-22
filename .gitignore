@@ -2,3 +2,5 @@ wallets/
 zak-wallet.json
 *.log
 node_modules/
+data/
+native/zakminer

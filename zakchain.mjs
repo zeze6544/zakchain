@@ -27,16 +27,22 @@ function verifyTx(t) {
     return crypto.verify(null, Buffer.from(txBody(t)), key, Buffer.from(t.sig, 'hex'));
   } catch { return false; }
 }
-const blockHash = b => sha(JSON.stringify([b.index, b.prev, b.time, b.bits, b.miner, b.txs, b.nonce]));
-const zeroBits = h => { let n = 0; for (const c of h) { const v = parseInt(c, 16); if (v === 0) { n += 4; continue; } return n + Math.clz32(v) - 28; } return n; };
+// Proof of work hashes only 40 bytes: the 32-byte header hash plus an 8-byte nonce. That keeps mining fast and
+// lets GPU or native miners work without parsing JSON.
+export const headerHash = b => sha(JSON.stringify([b.index, b.prev, b.time, b.bits, b.miner, b.txs]));
+export const powHash = (hh, nonce) => { const buf = Buffer.alloc(40); buf.write(hh, 0, 'hex'); buf.writeBigUInt64BE(BigInt(nonce), 32); return crypto.createHash('sha256').update(buf).digest('hex'); };
+const blockHash = b => powHash(headerHash(b), b.nonce);
+export const zeroBits = h => { let n = 0; for (const c of h) { const v = parseInt(c, 16); if (v === 0) { n += 4; continue; } return n + Math.clz32(v) - 28; } return n; };
 const work = b => 2 ** b.bits;
 
-// Difficulty for the block after `blocks`: retarget every RETARGET blocks, at most x2 / ÷2 per step.
+// Difficulty for the block after `blocks`: retarget every RETARGET blocks by log2(target time / actual time),
+// clamped to ±4 bits (16x) per step so a sudden flood of hash power is absorbed within a few retargets.
 export function nextBits(blocks) {
   const tip = blocks.at(-1);
   if (tip.index < 2 * RETARGET || tip.index % RETARGET !== 0) return tip.bits ?? START_BITS;
   const took = tip.time - blocks.at(-1 - RETARGET).time, want = TARGET_MS * RETARGET;
-  return Math.max(8, tip.bits + (took < want / 2 ? 1 : took > want * 2 ? -1 : 0));
+  const step = Math.max(-4, Math.min(4, Math.round(Math.log2(want / Math.max(took, 1)))));
+  return Math.max(8, tip.bits + step);
 }
 
 // Replays blocks, enforcing every rule. Returns state, or throws on the first invalid block.
@@ -83,7 +89,8 @@ export class Chain {
   mine(minerAddress) {
     const prev = this.blocks.at(-1);
     const b = { index: prev.index + 1, prev: prev.hash, time: Math.max(Date.now(), prev.time + 1), bits: nextBits(this.blocks), miner: minerAddress, txs: this.pending, nonce: 0 };
-    while (zeroBits(b.hash = blockHash(b)) < b.bits) b.nonce++;
+    const hh = headerHash(b);
+    while (zeroBits(b.hash = powHash(hh, b.nonce)) < b.bits) b.nonce++;
     this.blocks.push(b); this.pending = []; return b;
   }
   valid() { try { const { bal } = replay(this.blocks); return Object.values(bal).reduce((a, v) => a + v, 0) === SUPPLY; } catch { return false; } }

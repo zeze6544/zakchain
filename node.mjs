@@ -7,6 +7,12 @@ const PORT = +process.env.PORT || 7001;
 const PEERS = (process.env.PEERS || '').split(',').filter(Boolean);
 const genesis = JSON.parse(fs.readFileSync(new URL('./genesis.json', import.meta.url)));
 const chain = new Chain(genesis.address, genesis.time);
+// Persist the chain so a restarted node picks up where it left off (validated on load).
+const DATA = new URL(`./data/chain-${PORT}.json`, import.meta.url).pathname;
+fs.mkdirSync(new URL('./data/', import.meta.url).pathname, { recursive: true });
+if (fs.existsSync(DATA)) { try { chain.consider(JSON.parse(fs.readFileSync(DATA))); } catch {} }
+let savedTip = chain.blocks.at(-1).hash;
+setInterval(() => { const tip = chain.blocks.at(-1).hash; if (tip !== savedTip) { fs.writeFileSync(DATA + '.tmp', JSON.stringify(chain.blocks)); fs.renameSync(DATA + '.tmp', DATA); savedTip = tip; } }, 2000);
 
 const post = (url, body) => fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
 const broadcast = (path, body) => PEERS.forEach(p => post(p + path, body));

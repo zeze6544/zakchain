@@ -14,9 +14,19 @@ A tiny, readable proof-of-work blockchain written from scratch in plain Node.js.
 Requires Node.js 20+.
 
 ```bash
-git clone https://github.com/zeze6544/zakchain zakchain && cd zakchain
+git clone <repo-url> zakchain && cd zakchain
 PORT=7001 PEERS=http://<peer-host>:7001 node node.mjs
 ```
+
+## Mine
+
+```bash
+# optional native engine (~50x faster, uses Intel/AMD SHA extensions when present)
+gcc -O3 -march=native -pthread -o native/zakminer native/zakminer.c -lcrypto
+node miner.mjs <yourAddress> http://localhost:7001        # all CPU cores, live MH/s
+```
+
+Without the native build the miner falls back to JavaScript worker threads. Nodes save their chain to `data/` and resume after a restart.
 
 ## Wallet
 
