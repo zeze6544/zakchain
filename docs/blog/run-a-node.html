@@ -13,7 +13,7 @@
 <p>You need Node.js 20 or newer and nothing else.</p><pre>git clone https://github.com/zeze6544/zakchain && cd zakchain
 PORT=7001 node node.mjs
 PORT=7002 PEERS=http://localhost:7001 node node.mjs</pre>
-<p>Make a wallet with <code>node wallet.mjs new alice</code>, send a transfer, then mine it with <code>curl -X POST localhost:7001/mine</code>. Watch the second node pick up the new block within a second.</p>
+<p>Make a wallet with <code>node wallet.mjs new alice</code>, send a transfer, then start the node with <code>ALLOW_MINE=1</code> and mine it with <code>curl -X POST http://127.0.0.1:7001/mine</code>. Watch the second node pick up the new block within a second. That endpoint is off unless the flag is set, and it accepts the call only from this machine.</p>
 <p>To see what's happening, start the explorer with <code>node explorer/server.mjs</code> and open <code>http://localhost:7100</code>. It shows every block, transfer and address, the mempool, and how the difficulty has changed.</p></article>
 <nav class="post-nav" aria-label="More posts"><a href="double-spending.html">← How ZAK Chain stops double spending</a><span></span></nav>
 </main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="../feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div></body></html>

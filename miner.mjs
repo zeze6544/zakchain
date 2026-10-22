@@ -13,7 +13,7 @@ import crypto from 'crypto';
 import readline from 'readline';
 import { spawn } from 'child_process';
 import { Worker, isMainThread, parentPort } from 'worker_threads';
-import { nextBits, headerHash, powHash, zeroBits } from './zakchain.mjs';
+import { nextBits, headerHash, powHash, zeroBits, replay, selectTxs } from './zakchain.mjs';
 
 if (!isMainThread) {
   // JS fallback worker: tries nonces next, next+step, ... using the same 40-byte proof-of-work input.
@@ -202,7 +202,11 @@ async function main() {
     const { blocks, b } = current; current = null;
     b.nonce = Number(nonce); b.hash = hash;
     if (powHash(headerHash(b), b.nonce) !== hash) { console.log('miner bug: hash mismatch, skipping'); return newJob().catch(() => {}); }
-    const r = await (await fetch(node + '/block', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify([...blocks, b]), signal: AbortSignal.timeout(30_000) })).json().catch(() => ({}));
+    const send = body => fetch(node + '/block', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) }).then(r => r.json()).catch(() => ({}));
+    // The node appends a block that extends its tip. If this block was built on a fork the node
+    // no longer has, send the whole chain so total work can still win.
+    let r = await send(b);
+    if (!r.adopted) r = await send([...blocks, b]);
     if (r.adopted) found++;
     console.log(`block ${b.index} ${r.adopted ? 'WON' : 'lost race'} at ${b.bits} bits, ${b.txs.length} tx, fees ${b.txs.reduce((s, t) => s + t.fee, 0)} ZAK, won ${found}`);
     newJob().catch(() => {});
@@ -213,7 +217,9 @@ async function main() {
     const blocks = await get('/chain'), pending = await get('/pending');
     if (stopping) return;
     const prev = blocks.at(-1);
-    const b = { index: prev.index + 1, prev: prev.hash, time: Math.max(Date.now(), prev.time + 1), bits: nextBits(blocks), miner: address, txs: pending, nonce: 0 };
+    let txs = [];
+    try { txs = selectTxs(pending, replay(blocks)); } catch { txs = []; }
+    const b = { index: prev.index + 1, prev: prev.hash, time: Math.max(Date.now(), prev.time + 1), bits: nextBits(blocks), miner: address, txs, nonce: 0 };
     const id = ++jobId, hh = headerHash(b);
     current = { id, blocks, b }; tipSeen = prev.hash;
     if (native) {
