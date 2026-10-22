@@ -1,0 +1,4 @@
+wallets/
+zak-wallet.json
+*.log
+node_modules/

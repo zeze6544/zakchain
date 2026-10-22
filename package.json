@@ -1,0 +1,1 @@
+{"name":"zakchain","version":"0.1.0","type":"module","license":"MIT","scripts":{"node":"node node.mjs"}}
