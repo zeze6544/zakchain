@@ -1,5 +1,19 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Run your own ZAK node in one minute</title><link rel=stylesheet href=../style.css></head><body><div class=wrap><nav><a href="../index.html">ZAK Chain</a><a href="../blog/index.html">Blog</a><a href="../archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav><h1>Run your own ZAK node in one minute</h1><p class=tag>22 October 2026</p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Run your own ZAK node in one minute</title><meta name="description" content="Start two ZAK Chain nodes, make a wallet, send a transfer and mine it, with nothing but Node.js."><meta name="theme-color" content="#0b0f1a">
+<link rel="canonical" href="https://zaks.life/blog/run-a-node.html">
+<meta property="og:type" content="article"><meta property="og:site_name" content="ZAK Chain"><meta property="og:title" content="Run your own ZAK node in one minute"><meta property="og:description" content="Start two ZAK Chain nodes, make a wallet, send a transfer and mine it, with nothing but Node.js.">
+<meta property="og:url" content="https://zaks.life/blog/run-a-node.html"><meta property="og:image" content="https://zaks.life/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Run your own ZAK node in one minute"><meta name="twitter:description" content="Start two ZAK Chain nodes, make a wallet, send a transfer and mine it, with nothing but Node.js."><meta name="twitter:image" content="https://zaks.life/og.png">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="ZAK Chain blog" href="../feed.xml">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to content</a><div class="wrap">
+<nav class="site-nav" aria-label="Site"><a class="brand" href="../index.html"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#151b2b"/><path d="M19 19h26L19 45h26" fill="none" stroke="#f5b301" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>ZAK Chain</a><a href="../how-it-works.html">How it works</a><a href="../play.html">Play</a><a href="../blog/index.html" aria-current=page>Blog</a><a href="../archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav>
+<main id="main"><article><h1>Run your own ZAK node in one minute</h1><p class="tag"><time datetime="2026-10-22">22 October 2026</time></p>
 <p>You need Node.js 20 or newer and nothing else.</p><pre>git clone https://github.com/zeze6544/zakchain && cd zakchain
 PORT=7001 node node.mjs
 PORT=7002 PEERS=http://localhost:7001 node node.mjs</pre>
-<p>Make a wallet with <code>node wallet.mjs new alice</code>, send a transfer, then mine it with <code>curl -X POST localhost:7001/mine</code>. Watch the second node pick up the new block within a second.</p><p class="note">ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p></div></body></html>
+<p>Make a wallet with <code>node wallet.mjs new alice</code>, send a transfer, then mine it with <code>curl -X POST localhost:7001/mine</code>. Watch the second node pick up the new block within a second.</p>
+<p>To see what's happening, start the explorer with <code>node explorer/server.mjs</code> and open <code>http://localhost:7100</code>. It shows every block, transfer and address, the mempool, and how the difficulty has changed.</p></article>
+<nav class="post-nav" aria-label="More posts"><a href="double-spending.html">← How ZAK Chain stops double spending</a><span></span></nav>
+</main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="../feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div></body></html>
