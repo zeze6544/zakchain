@@ -1,8 +1,38 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>ZAK Chain: a blockchain you can read in ten minutes</title><link rel=stylesheet href=style.css></head><body><div class=wrap><nav><a href="index.html">ZAK Chain</a><a href="play.html">Play</a><a href="blog/index.html">Blog</a><a href="archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav><h1>⛓️ ZAK Chain</h1><div class=tag>A complete proof-of-work blockchain in about 150 lines of plain Node.js. No dependencies. Read it, run it, break it.</div>
-<a class=btn href="https://github.com/zeze6544/zakchain">View the code</a><a class=btn href="play.html">Play ZAK Miner</a><a class=btn href="blog/introducing-zak-chain.html">Read the launch post</a>
-<div class=grid><div class=card><b>Fixed supply</b><br>Exactly 1,000,000,000 ZAK in the genesis block. Nothing can mint more.</div>
-<div class=card><b>Signed transfers</b><br>Ed25519 signatures with per-wallet nonces, so transfers can't be forged or replayed.</div>
-<div class=card><b>Proof of work</b><br>SHA-256 blocks chained together. Edit an old block and every node rejects it.</div>
-<div class=card><b>Peer to peer</b><br>Nodes share transfers and blocks and agree on the longest valid chain.</div></div>
-<h2>Run a node</h2><pre>git clone https://github.com/zeze6544/zakchain && cd zakchain
-PORT=7001 node node.mjs</pre><p class="note">ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p></div></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZAK Chain: a blockchain you can read in ten minutes</title><meta name="description" content="A complete proof-of-work blockchain in about 150 lines of plain Node.js, with no dependencies. Read it, run it, break it. Educational; ZAK has no monetary value."><meta name="theme-color" content="#0b0f1a">
+<link rel="canonical" href="https://zaks.life/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="ZAK Chain"><meta property="og:title" content="ZAK Chain: a blockchain you can read in ten minutes"><meta property="og:description" content="A complete proof-of-work blockchain in about 150 lines of plain Node.js, with no dependencies. Read it, run it, break it. Educational; ZAK has no monetary value.">
+<meta property="og:url" content="https://zaks.life/"><meta property="og:image" content="https://zaks.life/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ZAK Chain: a blockchain you can read in ten minutes"><meta name="twitter:description" content="A complete proof-of-work blockchain in about 150 lines of plain Node.js, with no dependencies. Read it, run it, break it. Educational; ZAK has no monetary value."><meta name="twitter:image" content="https://zaks.life/og.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="ZAK Chain blog" href="feed.xml">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">Skip to content</a><div class="wrap">
+<nav class="site-nav" aria-label="Site"><a class="brand" href="index.html"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#151b2b"/><path d="M19 19h26L19 45h26" fill="none" stroke="#f5b301" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>ZAK Chain</a><a href="how-it-works.html">How it works</a><a href="play.html">Play</a><a href="blog/index.html">Blog</a><a href="archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav>
+<main id="main"><h1>A blockchain you can read in ten minutes</h1>
+<p class="tag">ZAK Chain is a complete proof-of-work blockchain in about 150 lines of plain Node.js, with no dependencies. Read it, run it, break it.</p>
+<a class="btn" href="how-it-works.html">See how it works</a><a class="btn ghost" href="play.html">Play ZAK Miner</a><a class="btn ghost" href="https://github.com/zeze6544/zakchain">View the code</a>
+<div class="grid">
+<div class="card"><b>Fixed supply</b><br>Exactly 1,000,000,000 ZAK in the genesis block. Nothing can mint more; miners earn transfer fees instead.</div>
+<div class="card"><b>Signed transfers</b><br>Ed25519 signatures with per-wallet nonces, so transfers can't be forged or replayed.</div>
+<div class="card"><b>Proof of work</b><br>SHA-256 blocks chained together, with difficulty retargeting toward one block every 10 seconds.</div>
+<div class="card"><b>Peer to peer</b><br>Nodes share transfers and blocks and adopt the valid chain with the most total work.</div>
+</div>
+<h2>What's in the repo</h2>
+<table class="files"><tbody>
+<tr><td><code>zakchain.mjs</code></td><td>The chain: wallets, signatures, blocks, difficulty, validation, fork choice.</td></tr>
+<tr><td><code>node.mjs</code></td><td>An HTTP node that gossips transfers and blocks with its peers.</td></tr>
+<tr><td><code>wallet.mjs</code></td><td>Make a wallet, check a balance, send a signed transfer.</td></tr>
+<tr><td><code>miner.mjs</code></td><td>A multi-core miner that earns the fees in the blocks it finds.</td></tr>
+<tr><td><code>explorer/</code></td><td>A local block explorer: blocks, transfers, addresses, mempool and a difficulty chart.</td></tr>
+<tr><td><code>test.mjs</code></td><td>Tests that try to forge, replay, overspend and rewrite history.</td></tr>
+</tbody></table>
+<h2>Run a node</h2>
+<pre>git clone https://github.com/zeze6544/zakchain && cd zakchain
+PORT=7001 node node.mjs
+node explorer/server.mjs      # then open http://localhost:7100</pre>
+<p>You need Node.js 20 or newer. The <a href="blog/run-a-node.html">one-minute guide</a> shows how to connect a second node and mine your first block.</p>
+<h2>Try it without installing anything</h2>
+<p><a href="how-it-works.html">How it works</a> lets you hash, mine and tamper with a tiny chain right in your browser. <a href="play.html">ZAK Miner</a> is an idle game that does real SHA-256 proof of work in your browser (its game ZAK is not real ZAK).</p>
+<style>.files td{padding:6px 10px 6px 0;vertical-align:top;border-bottom:1px solid #1d2438}.files{border-collapse:collapse;width:100%}.files td:first-child{white-space:nowrap}</style>
+</main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div></body></html>

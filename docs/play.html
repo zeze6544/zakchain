@@ -1,31 +1,45 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>ZAK Miner: the game</title><link rel=stylesheet href=style.css>
-<style>#rig{font-size:90px;cursor:pointer;user-select:none;text-align:center;transition:transform .05s}#rig:active{transform:scale(.9)}
-.big{font-size:34px;font-weight:800}.row{display:flex;gap:12px;flex-wrap:wrap}.row .card{flex:1;min-width:140px}
-button{padding:10px 16px;border:0;border-radius:8px;background:#f5b301;font-weight:700;cursor:pointer;margin:6px 6px 0 0}button:disabled{opacity:.4}
-#log{font-family:monospace;font-size:12px;max-height:180px;overflow:auto}</style></head><body><div class=wrap>
-<nav><a href="index.html">ZAK Chain</a><a href="play.html">Play</a><a href="blog/index.html">Blog</a></nav>
-<h1>⛏️ ZAK Miner</h1><p class=tag>Real SHA-256 proof of work, in your browser. Tap the rig to hash. Find a hash starting with zeros to earn game ZAK.</p>
-<div class=row><div class=card>Game ZAK<div class=big id=zak>0</div></div><div class=card>Hashes<div class=big id=hc>0</div></div>
-<div class=card>Best hash<div class=big id=best>–</div></div><div class=card>Hash rate<div class=big id=hr>0/s</div></div></div>
-<div id=rig onclick="tap()">🖥️</div>
-<div><button id=b1 onclick="buy('gpu')">Buy GPU (+200 h/s) · <span id=c1></span> ZAK</button><button id=b2 onclick="buy('farm')">Buy farm (+2,000 h/s) · <span id=c2></span> ZAK</button><button onclick="share()">Share score</button></div>
-<h3>Finds</h3><div id=log class=card></div>
-<p class=note>Game ZAK lives in your browser only. It isn't real ZAK and has no value. The hashing is real.</p></div>
-<script>
-const S=JSON.parse(localStorage.zakgame||'{"zak":0,"hashes":0,"gpu":0,"farm":0,"best":64}');
-const cost=k=>Math.floor((k=='gpu'?20:300)*1.5**S[k]);let n=Math.random()*1e9|0,done=0,t0=Date.now();
-const lz=h=>{let z=0;for(const c of h){if(c!='0')break;z++}return z};
-async function hash(k){for(let i=0;i<k;i++){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('ZAK'+n++));
-const h=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');S.hashes++;done++;const z=lz(h);
-if(z>=2){const r=16**(z-2);S.zak+=r;log.insertAdjacentHTML('afterbegin',`<div>+${r} ZAK · ${h.slice(0,20)}…</div>`)}
-if(z>0&&(S.best==64||z>=S.best))S.best=z}}
-function tap(){hash(25)}
-function buy(k){if(S.zak>=cost(k)){S.zak-=cost(k);S[k]++}}
-function share(){const t=`I've hashed ${S.hashes.toLocaleString()} times and mined ${S.zak} game ZAK in ZAK Miner ⛏️ Real proof of work in your browser:`;
-navigator.share?navigator.share({text:t,url:location.href}):navigator.clipboard.writeText(t+' '+location.href).then(()=>alert('Copied!'))}
-setInterval(()=>hash(Math.ceil((50+S.gpu*200+S.farm*2000)/10)),100);
-setInterval(()=>{zak.textContent=S.zak.toLocaleString();hc.textContent=S.hashes.toLocaleString();best.textContent=S.best==64?'–':S.best+' zeros';
-c1.textContent=cost('gpu');c2.textContent=cost('farm');b1.disabled=S.zak<cost('gpu');b2.disabled=S.zak<cost('farm');
-hr.textContent=Math.round(done/((Date.now()-t0)/1000))+'/s';if(Date.now()-t0>5000){t0=Date.now();done=0}localStorage.zakgame=JSON.stringify(S)},250);
-</script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZAK Miner: real proof of work in your browser</title><meta name="description" content="An idle mining game that runs real SHA-256 proof of work in your browser. Game ZAK is not real ZAK and has no value; the hashing is real."><meta name="theme-color" content="#0b0f1a">
+<link rel="canonical" href="https://zaks.life/play.html">
+<meta property="og:type" content="website"><meta property="og:site_name" content="ZAK Chain"><meta property="og:title" content="ZAK Miner: real proof of work in your browser"><meta property="og:description" content="An idle mining game that runs real SHA-256 proof of work in your browser. Game ZAK is not real ZAK and has no value; the hashing is real.">
+<meta property="og:url" content="https://zaks.life/play.html"><meta property="og:image" content="https://zaks.life/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="ZAK Miner: real proof of work in your browser"><meta name="twitter:description" content="An idle mining game that runs real SHA-256 proof of work in your browser. Game ZAK is not real ZAK and has no value; the hashing is real."><meta name="twitter:image" content="https://zaks.life/og.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="ZAK Chain blog" href="feed.xml">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="play.css"></head><body>
+<a class="skip" href="#main">Skip to content</a><div class="wrap">
+<nav class="site-nav" aria-label="Site"><a class="brand" href="index.html"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#151b2b"/><path d="M19 19h26L19 45h26" fill="none" stroke="#f5b301" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>ZAK Chain</a><a href="how-it-works.html">How it works</a><a href="play.html" aria-current=page>Play</a><a href="blog/index.html">Blog</a><a href="archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav>
+<main id="main"><h1>⛏️ ZAK Miner</h1>
+<p class="tag">Real SHA-256 proof of work, in your browser. Find hashes that start with zeros to earn <b>game ZAK</b>. Every find can be checked with <code>sha256sum</code>.</p>
+<p id="offnote" class="optin"><b>Mining is off.</b> Nothing is hashed until you press <b>Start mining</b>. It then uses at most the CPU limit you pick (25% of one core by default), stops when you press Pause, and stops in background tabs unless you allow it. Close the tab and it stops completely.</p>
+<div id="away" class="away" role="status" hidden></div>
+<section class="stats" aria-label="Current stats">
+<div class="card"><small>Game ZAK</small><div class="big" id="zak">0</div><small id="zps">0 / s</small></div>
+<div class="card"><small>Hash rate</small><div class="big" id="hr">0 H/s</div><small id="capnote">rig cap 500 H/s</small></div>
+<div class="card"><small>Hashes (all time)</small><div class="big" id="hc">0</div><small id="hcrun"></small></div>
+<div class="card"><small>Best hash</small><div class="big" id="best">–</div><small id="bestbits"></small></div>
+</section>
+<section class="rigbox">
+<button id="rig" aria-label="Tap the rig to hash a burst">🖥️<span class="sr">Hash a burst</span></button>
+<div class="ticker"><small>Latest hash · <span id="tickin" class="mono"></span></small><div class="mono" id="tick">Mining is off. Press Start mining.</div>
+<div class="row"><button class="btn" id="pause" aria-pressed="false">Start mining</button><label class="chk" for="cpu">CPU limit <select id="cpu"><option value="0.1">10%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option></select> of one core</label><label class="chk"><input type="checkbox" id="sound"> Sound</label><label class="chk"><input type="checkbox" id="bg"> Keep mining in background tabs</label></div></div>
+</section>
+<div class="cols">
+<section class="panel" aria-labelledby="up-h"><h2 id="up-h">Upgrades</h2><div id="shop"></div>
+<p class="fine">Upgrades raise your rig's hash-rate <em>cap</em>. The real limit is your device: once the cap is above what your CPU can do, extra upgrades won't make it hash faster.</p></section>
+<section class="panel" aria-labelledby="fork-h"><h2 id="fork-h">Hard fork</h2><p id="forktxt"></p><button class="btn" id="fork">Hard fork</button>
+<h2 style="margin-top:22px">How rewards work</h2><p class="fine" style="margin-top:0">A find with <i>z</i> leading hex zeros pays 16<sup><i>z</i>−2</sup> game ZAK, times your pool and fork bonuses. Two zeros pay 1, three pay 16, four pay 256. Each extra zero is 16 times rarer, so on average every zero level is worth the same; big finds are just lumpier.</p></section>
+</div>
+<section class="panel" aria-labelledby="ach-h"><h2 id="ach-h">Achievements <small id="achc"></small></h2><div id="ach" class="ach"></div></section>
+<section class="panel" aria-labelledby="finds-h"><h2 id="finds-h">Finds <small id="findnote"></small></h2><div id="log" class="log" aria-live="off"><p class="fine empty">Mining… rare finds appear here, each re-checked with your browser's own SHA-256.</p></div></section>
+<div class="cols">
+<section class="panel" aria-labelledby="pb-h"><h2 id="pb-h">Personal bests</h2><table class="pb"><tbody id="pb"></tbody></table>
+<p class="fine">Stored only in this browser. There's no global leaderboard and nothing is sent anywhere.</p></section>
+<section class="panel" aria-labelledby="share-h"><h2 id="share-h">Share</h2><canvas id="card" width="1200" height="630" aria-label="Score card image"></canvas>
+<div class="row"><button class="btn" id="share">Share</button><button class="btn ghost" id="dl">Download image</button><button class="btn ghost" id="copy">Copy text</button></div>
+<h2 style="margin-top:22px">Save</h2><div class="row"><button class="btn ghost" id="exp">Export save</button><button class="btn ghost" id="imp">Import save</button><button class="btn ghost" id="reset">Reset everything</button></div><p id="savemsg" class="fine" role="status"></p></section>
+</div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<p class="note">Game ZAK lives in your browser only. It isn't real ZAK, can't be withdrawn or sent, and has no value. The hashing is real: about one in 256 SHA-256 hashes starts with two hex zeros, and each extra zero is 16 times rarer.</p>
+<noscript><p class="note">ZAK Miner needs JavaScript to hash.</p></noscript>
+</main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div><script src="js/game.js"></script></body></html>

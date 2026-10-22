@@ -1,0 +1,52 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How ZAK Chain works: hash, mine and tamper in your browser</title><meta name="description" content="An interactive walkthrough of SHA-256 hashing, proof of work, chained blocks and replay protection, running live in your browser."><meta name="theme-color" content="#0b0f1a">
+<link rel="canonical" href="https://zaks.life/how-it-works.html">
+<meta property="og:type" content="website"><meta property="og:site_name" content="ZAK Chain"><meta property="og:title" content="How ZAK Chain works: hash, mine and tamper in your browser"><meta property="og:description" content="An interactive walkthrough of SHA-256 hashing, proof of work, chained blocks and replay protection, running live in your browser.">
+<meta property="og:url" content="https://zaks.life/how-it-works.html"><meta property="og:image" content="https://zaks.life/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="How ZAK Chain works: hash, mine and tamper in your browser"><meta name="twitter:description" content="An interactive walkthrough of SHA-256 hashing, proof of work, chained blocks and replay protection, running live in your browser."><meta name="twitter:image" content="https://zaks.life/og.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="ZAK Chain blog" href="feed.xml">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">Skip to content</a><div class="wrap">
+<nav class="site-nav" aria-label="Site"><a class="brand" href="index.html"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#151b2b"/><path d="M19 19h26L19 45h26" fill="none" stroke="#f5b301" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>ZAK Chain</a><a href="how-it-works.html" aria-current=page>How it works</a><a href="play.html">Play</a><a href="blog/index.html">Blog</a><a href="archive.html">Archive</a><a href="https://github.com/zeze6544/zakchain">GitHub</a></nav>
+<main id="main"><style>
+.demo{background:var(--panel);border-radius:12px;padding:16px;margin:16px 0}.demo label{display:block;color:var(--muted);font-size:14px;margin:8px 0 4px}
+.demo input,.demo textarea{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:14px ui-monospace,monospace}
+.demo textarea{min-height:54px;resize:vertical}.hash{font:13px ui-monospace,monospace;word-break:break-all;background:var(--bg);border-radius:8px;padding:9px 11px}
+.z{color:var(--gold);font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}.muted{color:var(--muted)}
+.blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.blk{border:2px solid #2f6b47;border-radius:12px;padding:12px;background:#122019;transition:background .2s,border-color .2s}.blk.broken{border-color:#7f2d2d;background:#241417}
+.blk h3{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between}.blk .hash{font-size:11px;padding:6px 8px}.blk label{font-size:12px;margin:6px 0 2px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row input[type=range]{flex:1;min-width:160px;accent-color:#f5b301}
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}.ledger .card{background:var(--bg)}
+#rlog{font:13px ui-monospace,monospace;max-height:220px;overflow:auto;margin-top:10px}#rlog div{padding:4px 0;border-bottom:1px solid #1d2438}
+</style>
+<h1>How it works</h1>
+<p class="tag">Four ideas make a blockchain. Each one is live below: the hashing is real SHA-256, computed in your browser.</p>
+<nav aria-label="On this page"><a href="#hash">1. Hashing</a> · <a href="#mine">2. Proof of work</a> · <a href="#chain">3. A chain of blocks</a> · <a href="#replay">4. Signed, numbered transfers</a></nav>
+
+<h2 id="hash">1. A hash is a fingerprint</h2>
+<p>SHA-256 turns any text into 64 hex characters. The same input always gives the same output, but change one letter and the output changes completely. Nobody knows how to work backwards from a hash to its input.</p>
+<div class="demo"><label for="h-in">Type anything</label><input id="h-in" value="Hello, ZAK Chain"><label>SHA-256</label><div class="hash" id="h-out" aria-live="polite"></div><p class="muted" id="h-check" style="font-size:13px;margin-bottom:0"></p></div>
+
+<h2 id="mine">2. Proof of work: find a hash that starts with zeros</h2>
+<p>A miner adds a number called a <b>nonce</b> to the block and keeps changing it until the hash starts with enough zero <em>bits</em>. There is no shortcut: each extra bit doubles the expected number of tries. ZAK Chain raises or lowers the required bits every 10 blocks to aim for one block every 10 seconds.</p>
+<div class="demo"><label for="m-data">Block data</label><input id="m-data" value="Alice pays Bob 10 ZAK">
+<label for="m-bits">Difficulty: <b id="m-bitsv">16</b> leading zero bits (about <span id="m-exp"></span> tries on average)</label>
+<div class="row"><input type="range" id="m-bits" min="4" max="22" value="16"><button class="btn" id="m-go" style="margin:0">Mine</button></div>
+<label>Hash of <span class="mono" id="m-input"></span></label><div class="hash" id="m-out">Press Mine.</div><p id="m-stat" class="muted" aria-live="polite" style="margin-bottom:0"></p></div>
+
+<h2 id="chain">3. Each block includes the previous block's hash</h2>
+<p>Every block stores the hash of the block before it. Edit any block below and its hash changes, so it no longer has enough zeros <em>and</em> the next block's "previous" link no longer matches. Everything after the edit turns red. To cheat you'd have to re-mine that block and every block after it, faster than the rest of the network adds new ones.</p>
+<div class="demo"><div class="blocks" id="blocks"></div><p class="muted" style="font-size:13px;margin-bottom:0">This toy uses 12-bit difficulty and hashes <code>[index, prev, data, nonce]</code>. Real ZAK blocks also commit to the time, difficulty, miner and signed transfers.</p></div>
+
+<h2 id="replay">4. Transfers are signed and numbered</h2>
+<p>Each transfer is signed with the sender's private key and carries a <b>nonce</b>: the sender's transfer count plus one. Every node replays every transfer from the genesis block, so it knows each balance and the last nonce. Try to cheat this toy ledger:</p>
+<div class="demo"><div class="ledger"><div class="card">Alice<br><b id="r-a"></b><br><small class="muted">last nonce <span id="r-an"></span></small></div><div class="card">Bob<br><b id="r-b"></b></div><div class="card">Miner (fees)<br><b id="r-m"></b></div></div>
+<div class="row"><button class="btn" id="r-send">Alice sends Bob 10 (fee 1)</button><button class="btn ghost" id="r-replay">Replay her last transfer</button><button class="btn ghost" id="r-over">Alice sends Bob 1,000</button><button class="btn ghost" id="r-forge">Bob signs as Alice</button><button class="btn ghost" id="r-reset">Reset</button></div>
+<div id="rlog" aria-live="polite"></div>
+<p class="muted" style="font-size:13px;margin-bottom:0">The toy checks rules the same way <code>zakchain.mjs</code> does, but shows signatures as "signed by" labels instead of real Ed25519 keys.</p></div>
+
+<h2>And consensus</h2>
+<p>Nodes pass new transfers and blocks to each other. If two chains disagree, a node keeps the one that is fully valid and has the most total proof of work, so a long chain of easy blocks can't win. The <a href="https://github.com/zeze6544/zakchain">code</a> is short enough to read in one sitting; start with <code>replay()</code> in <code>zakchain.mjs</code>.</p>
+</main><footer class="site-foot"><p>ZAK Chain is an experimental, educational open-source project. ZAK has no monetary value, is not listed on any exchange, and nothing here is investment advice.</p><p><a href="https://github.com/zeze6544/zakchain">Source on GitHub</a> · MIT licence · <a href="feed.xml">RSS</a> · No trackers, no cookies.</p></footer></div><script src="js/sha256.js"></script><script src="js/how-it-works.js"></script></body></html>
